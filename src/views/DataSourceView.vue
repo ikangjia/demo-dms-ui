@@ -42,8 +42,8 @@
             <el-table-column prop="name" label="数据源名称" width="180" />
             <el-table-column prop="type" label="类型" width="80" >
               <template #default="scope">
-                <el-tag v-if="scope.row.type === 0">MySQL</el-tag>
-                <el-tag v-else-if="scope.row.type === 1">Redis</el-tag>
+                <el-tag type="success" v-if="scope.row.type === 0"><span>MySQL</span></el-tag>
+                <el-tag type="warning" v-else-if="scope.row.type === 1">Redis</el-tag>
                 <el-tag v-else>其他</el-tag>
               </template>
             </el-table-column>
@@ -52,18 +52,21 @@
             <el-table-column prop="username" label="数据库用户名" width="130" />
             <el-table-column prop="createTime" label="创建时间" width="180" />
             <el-table-column prop="updateTime" label="修改时间" width="180" />
-            <el-table-column prop="deleted" label="是否启用" width="80" />
-            <el-table-column label="操作"  width="300">
+            <el-table-column prop="deleted" label="是否启用" width="80"  />
+            <el-table-column label="操作"  width="365">
               <template #default="scope">
-                <el-button @click="handleEdit(scope.$index, scope.row)"
+                <el-button type="info" @click="handleEdit(scope.$index, scope.row)"
                 >编辑</el-button
                 >
-                <el-button @click="testConnection(scope.$index, scope.row)"
+                <el-button type="warning" @click="testConnection(scope.$index, scope.row)"
                 >连通性测试</el-button
+                >
+                <el-button type="success" @click="testConnection(scope.$index, scope.row)"
+                >进入</el-button
                 >
                 <el-button
                   type="danger"
-                  @click="handleDelete(scope.$index, scope.row)"
+                  @click="removeDataSource(scope.$index, scope.row)"
                 >删除</el-button
                 >
               </template>
@@ -106,6 +109,7 @@ export default {
     this.load()
   },
   methods: {
+    // 初始化表格、模糊查询、刷新表格
     load () {
       this.$axios.get('http://localhost:9002/dataSource',{
         params: {
@@ -122,7 +126,7 @@ export default {
     // 连通性处理
     testConnection(index, row) {
       this.$axios.post('http://localhost:9002/dataSource/testConnection',row).then(res => {
-        if (res.data.code === 0) {
+        if (res.data.code === 0 && res.data.data) {
           this.$message.success('该数据源可联通~')
         } else {
           this.$message.warning('该数据源不可联通~')
@@ -135,10 +139,20 @@ export default {
       this.searchCondition.host = ''
       this.searchCondition.type = ''
       this.load()
-    }
+    },
+    // 删除按钮事件处理
+    removeDataSource(index, row) {
+      this.$axios.delete('http://localhost:9002/dataSource/' + row.id).then(res => {
+        if (res.data.code === 0) {
+          this.$message.success('已删除~')
+          this.load()
+        } else {
+          this.$message.warning('删除失败~' + res.data.msg)
+        }
+      })
+    },
   }
 }
-
 
 </script>
 
