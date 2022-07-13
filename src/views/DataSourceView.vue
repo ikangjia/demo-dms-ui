@@ -4,7 +4,7 @@
       <el-header>
         <span style="flex: 3">欢迎使用xxx系统</span>
         <div style="flex: 1;">
-          <el-link>当前用户</el-link>
+          <el-link>当前用户: {{ loginUser.name }}</el-link>
         </div>
       </el-header>
       <el-main>
@@ -38,36 +38,40 @@
         </div>
         <div class="dataSourceTable">
           <el-table border :data="dataSourceTableData" style="width: 100%">
-            <el-table-column prop="id" label="ID" width="40" />
-            <el-table-column prop="name" label="数据源名称" width="180" />
-            <el-table-column prop="type" label="类型" width="80" >
+            <el-table-column prop="id" label="ID" width="40"/>
+            <el-table-column prop="name" label="数据源名称" width="180"/>
+            <el-table-column prop="type" label="类型" width="80">
               <template #default="scope">
                 <el-tag type="success" v-if="scope.row.type === 0"><span>MySQL</span></el-tag>
                 <el-tag type="warning" v-else-if="scope.row.type === 1">Redis</el-tag>
                 <el-tag v-else>其他</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="host" label="主机" width="180" />
-            <el-table-column prop="port" label="端口" width="80" />
-            <el-table-column prop="username" label="数据库用户名" width="130" />
-            <el-table-column prop="createTime" label="创建时间" width="180" />
-            <el-table-column prop="updateTime" label="修改时间" width="180" />
-            <el-table-column prop="deleted" label="是否启用" width="80"  />
-            <el-table-column label="操作"  width="365">
+            <el-table-column prop="host" label="主机" width="180"/>
+            <el-table-column prop="port" label="端口" width="80"/>
+            <el-table-column prop="username" label="数据库用户名" width="130"/>
+            <el-table-column prop="createTime" label="创建时间" width="180"/>
+            <el-table-column prop="updateTime" label="修改时间" width="180"/>
+            <el-table-column prop="deleted" label="是否启用" width="80"/>
+            <el-table-column label="操作" width="365">
               <template #default="scope">
                 <el-button type="info" @click="handleEdit(scope.$index, scope.row)"
-                >编辑</el-button
+                >编辑
+                </el-button
                 >
                 <el-button type="warning" @click="testConnection(scope.$index, scope.row)"
-                >连通性测试</el-button
+                >连通性测试
+                </el-button
                 >
                 <el-button type="success" @click="testConnection(scope.$index, scope.row)"
-                >进入</el-button
+                >进入
+                </el-button
                 >
                 <el-button
-                  type="danger"
-                  @click="removeDataSource(scope.$index, scope.row)"
-                >删除</el-button
+                    type="danger"
+                    @click="removeDataSource(scope.$index, scope.row)"
+                >删除
+                </el-button
                 >
               </template>
             </el-table-column>
@@ -87,8 +91,9 @@
 <script>
 export default {
   name: 'DataSource',
-  data () {
+  data() {
     return {
+      loginUser: {},
       searchCondition: {},
       dataSourceTableData: [
         // {
@@ -107,17 +112,21 @@ export default {
   },
   created() {
     this.load()
+    this.getUsername()
   },
   methods: {
     // 初始化表格、模糊查询、刷新表格
-    load () {
-      this.$axios.get('http://localhost:9002/dataSource',{
+    load() {
+      this.$axios.get('http://localhost:9002/dataSource', {
         params: {
           pageNum: 1,
           pageSize: 100,
           name: this.searchCondition.name,
           host: this.searchCondition.host,
           type: this.searchCondition.type,
+        },
+        headers: {
+          Authorization: localStorage.getItem('token')
         }
       }).then(res => {
         this.dataSourceTableData = res.data.data.dataSourceDTOList
@@ -125,11 +134,15 @@ export default {
     },
     // 连通性处理
     testConnection(index, row) {
-      this.$axios.post('http://localhost:9002/dataSource/testConnection',row).then(res => {
+      this.$axios.post('http://localhost:9002/dataSource/testConnection', row, {
+        headers: {
+          Authorization: localStorage.getItem('token')
+        }
+      }).then(res => {
         if (res.data.code === 0 && res.data.data) {
           this.$message.success('该数据源可联通~')
         } else {
-          this.$message.warning('该数据源不可联通~')
+          this.$message.error(res.data.msg)
         }
       })
     },
@@ -142,7 +155,11 @@ export default {
     },
     // 删除按钮事件处理
     removeDataSource(index, row) {
-      this.$axios.delete('http://localhost:9002/dataSource/' + row.id).then(res => {
+      this.$axios.delete('http://localhost:9002/dataSource/' + row.id, {
+        headers: {
+          Authorization: localStorage.getItem('token')
+        }
+      }).then(res => {
         if (res.data.code === 0) {
           this.$message.success('已删除~')
           this.load()
@@ -151,6 +168,29 @@ export default {
         }
       })
     },
+
+    // 获取用户名称，显示在 Header 里
+    getUsername() {
+      const _this = this
+      const userId = this.getUserIdByToken()
+      this.$axios.get('http://localhost:9002/user/' + userId, {
+            headers: {
+              Authorization: localStorage.getItem('token')
+            }
+          }
+      ).then(res => {
+        if (res.data.code === 0) {
+          _this.loginUser = res.data.data
+        } else {
+          _this.$message.error('系统错误' + res.data.msg)
+        }
+      })
+    },
+    // 从 token 里获取用户的 id 信息
+    getUserIdByToken() {
+      let payload = window.atob(localStorage.getItem('token').split('.')[1])
+      return JSON.parse(payload).id
+    }
   }
 }
 

@@ -38,7 +38,15 @@ export default {
   },
   methods: {
     doLogin () {
-      this.$router.push('/dataSource')
+
+      this.$axios.post('http://localhost:9002/user/doLogin', this.loginForm)
+          .then(res => {
+            if (res.data.code === 0) {
+              localStorage.setItem('token', res.data.data.token)
+              console.log(res.data.data.id)
+              this.$router.push('/dataSource')
+            }
+          })
     }
   }
 }
