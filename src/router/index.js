@@ -17,6 +17,11 @@ const routes = [
     path: '/dataSource',
     name: 'dataSource',
     component: () => import('../views/DataSourceView.vue')
+  },
+  {
+    path: '/mysql',
+    name: 'MySQL',
+    component: () => import('../views/MysqlView')
   }
 ]
 

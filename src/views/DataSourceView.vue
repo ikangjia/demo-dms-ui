@@ -50,24 +50,10 @@
             <el-table-column prop="deleted" label="是否启用" width="80"/>
             <el-table-column label="操作" width="365">
               <template #default="scope">
-                <el-button type="info" @click="handleEdit(scope.$index, scope.row)"
-                >编辑
-                </el-button
-                >
-                <el-button type="warning" @click="testConnection(scope.$index, scope.row)"
-                >连通性测试
-                </el-button
-                >
-                <el-button type="success" @click="testConnection(scope.$index, scope.row)"
-                >进入
-                </el-button
-                >
-                <el-button
-                    type="danger"
-                    @click="removeDataSource(scope.$index, scope.row)"
-                >删除
-                </el-button
-                >
+                <el-button type="info" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+                <el-button type="warning" @click="testConnection(scope.$index, scope.row)">连通性测试</el-button>
+                <el-button type="success" @click="openMainView(scope.$index, scope.row)">进入</el-button>
+                <el-button type="danger" @click="removeDataSource(scope.$index, scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -88,14 +74,12 @@ export default {
   components: {MyFooter, MyHeader},
   data() {
     return {
-      loginUser: {},
       searchCondition: {},
       dataSourceTableData: []
     }
   },
   created() {
     this.load()
-    this.getUsername()
   },
   methods: {
     // 初始化表格、模糊查询、刷新表格
@@ -141,7 +125,27 @@ export default {
             }
           })
     },
-
+    openMainView(index, row) {
+      console.log(index)
+      console.log(row)
+      const dataSourceId = row.id
+      const dataSourceType = row.type
+      switch (row.type) {
+        case 0:
+          this.$router.push({
+            name: 'MySQL',
+            params: {
+              dataSourceId: dataSourceId,
+              dataSourceType: dataSourceType
+            }
+          })
+          break
+        case 1:
+          break
+        case 2:
+          break
+      }
+    }
 
   }
 }

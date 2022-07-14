@@ -15,7 +15,7 @@
                     placeholder="验证码"/>
           <img style="width: 50%" :src="src" @click="refreshCode" alt="看不清？单机图片刷新">
         </el-form-item>
-        <el-button type="primary" style="width: 100%; margin-bottom: 10px" @click="doLogin">登录</el-button>
+        <el-button type="primary" style="width: 100%; margin-bottom: 10px" @click="doLogin" size="large">登录</el-button>
         <el-link href="#" style="float: left">忘记密码？</el-link>
         <el-link href="#" style="float: right" type="primary">新账户注册</el-link>
       </el-form>

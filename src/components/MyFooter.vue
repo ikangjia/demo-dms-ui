@@ -15,9 +15,9 @@ export default {
 <style scoped>
 .el-footer {
   text-align: center;
-  height: 50px;
+  height: 30px !important;
   width: 100%;
-  line-height: 50px;
+  line-height: 30px;
   font-size: 14px;
   background-color: #42b983;
   position: fixed;

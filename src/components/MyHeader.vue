@@ -44,5 +44,6 @@ export default {
   display: flex;
   align-items: center;
   background-color: #42b983;
+  height: 40px !important;
 }
 </style>
