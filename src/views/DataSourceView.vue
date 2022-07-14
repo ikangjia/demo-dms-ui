@@ -1,12 +1,7 @@
 <template>
   <div class="common-layout">
+    <MyHeader/>
     <el-container>
-      <el-header>
-        <span style="flex: 3">欢迎使用xxx系统</span>
-        <div style="flex: 1;">
-          <el-link>当前用户: {{ loginUser.name }}</el-link>
-        </div>
-      </el-header>
       <el-main>
         <el-row style="margin-bottom: 20px">
           <el-button type="primary">添加数据源</el-button>
@@ -79,18 +74,18 @@
 
         </div>
       </el-main>
-      <el-footer>
-        <span>@copyright 2022</span> &nbsp;&nbsp;
-        <span>作者：<el-link style="font-size: 14px;" href="https://ikangjia.cn/"
-                            target="_blank">林深时觉寒</el-link></span>
-      </el-footer>
     </el-container>
+    <MyFooter/>
   </div>
 </template>
 
 <script>
+import MyHeader from "@/components/MyHeader";
+import MyFooter from "@/components/MyFooter";
+
 export default {
   name: 'DataSource',
+  components: {MyFooter, MyHeader},
   data() {
     return {
       loginUser: {},
@@ -113,7 +108,6 @@ export default {
             type: this.searchCondition.type,
           }
       ).then(res => {
-        console.log(res)
         this.dataSourceTableData = res.data.dataSourceDTOList
       })
     },
@@ -121,10 +115,9 @@ export default {
     testConnection(index, row) {
       this.$http.post('api/dataSource/testConnection', row)
           .then(res => {
-            console.log(res);
             if (res.code === 0 && res.data) {
               this.$message.success('该数据源可联通~')
-            } else if (!res.data){
+            } else if (!res.data) {
               this.$message.error('连接测试失败，请检查数据源信息和网络情况~')
             }
           })
@@ -149,24 +142,7 @@ export default {
           })
     },
 
-    // 获取用户名称，显示在 Header 里
-    getUsername() {
-      const _this = this
-      const userId = this.getUserIdByToken()
-      this.$http.get('api/user/' + userId)
-          .then(res => {
-            if (res.code === 0) {
-              _this.loginUser = res
-            } else {
-              _this.$message.error('系统错误' + res.msg)
-            }
-          })
-    },
-    // 从 token 里获取用户的 id 信息
-    getUserIdByToken() {
-      let payload = window.atob(localStorage.getItem('token').split('.')[1])
-      return JSON.parse(payload).id
-    }
+
   }
 }
 
@@ -178,30 +154,5 @@ export default {
   padding: 0;
   width: 100%;
   height: 100vh;
-}
-
-.common-layout .el-container .el-header {
-  display: flex;
-  align-items: center;
-  background-color: #42b983;
-}
-
-.common-layout .el-container .el-main {
-}
-
-.common-layout .el-container .el-footer {
-  text-align: center;
-  height: 50px;
-  line-height: 50px;
-  font-size: 14px;
-  background-color: #42b983;
-}
-
-.searchCondition {
-
-}
-
-.dataSourceTable {
-
 }
 </style>

@@ -32,7 +32,7 @@ export default {
       loginForm: {
         account: 'admin',
         password: 'admin',
-        code: '1234'
+        code: ''
       },
       src: 'api/user/captcha.jpg'
     }
