@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="boss">
     <el-header>
       <h3 style="display:inline;">欢迎使用xxx系统</h3>
       <ul style="display: inline;margin-left: 200px">
@@ -8,13 +8,13 @@
         <li><a href="#">用户权限操作</a></li>
         <li><a href="#">帮助</a></li>
       </ul>
-      <div class="header-loginUser">
+      <div class="header-loginUser" style="float: right;margin-right: 50px;">
         <span style="color: white;font-size: 14px;line-height: 40px;vertical-align: center">
           当前用户：
            <el-dropdown style="display: inherit;" @command="handleCommand">
               <span style="color: #42b983;line-height: 40px">
                 {{ this.loginUser.name }}
-                <i class="el-icon-arrow-down el-icon--right"></i>
+                <i class="el-icon-arrow-down el-icon--right" style="font-size: 12px;"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item command="showLoginUserInfo">用户信息</el-dropdown-item>
@@ -34,21 +34,20 @@
         </div>
       </div>
       <div class="right-box">
-        <div class="right-main">
-          标签页主操作区域
-        </div>
+        各个功能点的标签页区域
       </div>
     </div>
-    <MyFooter/>
+    <el-footer>
+      <span>@copyright 2022</span> &nbsp;&nbsp;
+      <span>作者：<el-link style="font-size: 14px;" href="https://ikangjia.cn/"
+                          target="_blank">林深时觉寒</el-link></span>
+    </el-footer>
   </div>
 </template>
 
 <script>
-import MyFooter from "@/components/MyFooter";
-
 export default {
   name: "MysqlView",
-  components: {MyFooter},
   data() {
     return {
       loginUser: {},
@@ -93,7 +92,7 @@ export default {
       switch (command) {
         case 'logout':
           localStorage.removeItem('token')
-            this.$message.success('注销成功~')
+          this.$message.success('注销成功~')
           this.$router.push('/login')
           break
         case 'showLoginUserInfo':
@@ -108,6 +107,19 @@ export default {
 </script>
 
 <style scoped>
+.boss {
+  height: 100vh;
+}
+
+.el-footer {
+  text-align: center;
+  height: 30px !important;
+  width: 100%;
+  line-height: 30px;
+  font-size: 14px;
+  background-color: #42b983;
+}
+
 .el-header {
   background-color: black;
   height: 40px !important;
@@ -135,12 +147,27 @@ export default {
   color: red !important;
 }
 
-.header-loginUser {
-  float: right;
-  margin-right: 50px;
+.container {
+  display: flex;
+  height: calc(100% - 70px);
 }
 
-.el-icon-arrow-down {
-  font-size: 12px;
+.container .left-box {
+  flex: 1;
+}
+
+.container .left-box .left-top {
+  background-color: red;
+  height: 100px;
+}
+
+.container .left-box .left-tree {
+  background-color: gray;
+  height: calc(100% - 100px);
+}
+
+.container .right-box {
+  flex: 3;
+  background-color: cyan;
 }
 </style>
