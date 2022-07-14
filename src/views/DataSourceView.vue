@@ -95,19 +95,7 @@ export default {
     return {
       loginUser: {},
       searchCondition: {},
-      dataSourceTableData: [
-        // {
-        //   id: 1,
-        //   name: 'local-mysql',
-        //   type: 0,
-        //   host: 'localhost',
-        //   port: '3306',
-        //   username: 'root',
-        //   createTime: 'aaa',
-        //   updateTime: 'aaa',
-        //   deleted: false
-        // }
-      ]
+      dataSourceTableData: []
     }
   },
   created() {
@@ -117,34 +105,29 @@ export default {
   methods: {
     // 初始化表格、模糊查询、刷新表格
     load() {
-      this.$axios.get('http://localhost:9002/dataSource', {
-        params: {
-          pageNum: 1,
-          pageSize: 100,
-          name: this.searchCondition.name,
-          host: this.searchCondition.host,
-          type: this.searchCondition.type,
-        },
-        headers: {
-          Authorization: localStorage.getItem('token')
-        }
-      }).then(res => {
-        this.dataSourceTableData = res.data.data.dataSourceDTOList
+      this.$http.get('/api/dataSource', {
+            pageNum: 1,
+            pageSize: 100,
+            name: this.searchCondition.name,
+            host: this.searchCondition.host,
+            type: this.searchCondition.type,
+          }
+      ).then(res => {
+        console.log(res)
+        this.dataSourceTableData = res.data.dataSourceDTOList
       })
     },
     // 连通性处理
     testConnection(index, row) {
-      this.$axios.post('http://localhost:9002/dataSource/testConnection', row, {
-        headers: {
-          Authorization: localStorage.getItem('token')
-        }
-      }).then(res => {
-        if (res.data.code === 0 && res.data.data) {
-          this.$message.success('该数据源可联通~')
-        } else {
-          this.$message.error(res.data.msg)
-        }
-      })
+      this.$http.post('api/dataSource/testConnection', row)
+          .then(res => {
+            console.log(res);
+            if (res.code === 0 && res.data) {
+              this.$message.success('该数据源可联通~')
+            } else if (!res.data){
+              this.$message.error('连接测试失败，请检查数据源信息和网络情况~')
+            }
+          })
     },
     // 重置按钮事件处理
     resetSearch() {
@@ -155,36 +138,29 @@ export default {
     },
     // 删除按钮事件处理
     removeDataSource(index, row) {
-      this.$axios.delete('http://localhost:9002/dataSource/' + row.id, {
-        headers: {
-          Authorization: localStorage.getItem('token')
-        }
-      }).then(res => {
-        if (res.data.code === 0) {
-          this.$message.success('已删除~')
-          this.load()
-        } else {
-          this.$message.warning('删除失败~' + res.data.msg)
-        }
-      })
+      this.$http.delete('api/dataSource/' + row.id)
+          .then(res => {
+            if (res.code === 0) {
+              this.$message.success('已删除~')
+              this.load()
+            } else {
+              this.$message.warning('删除失败~' + res.msg)
+            }
+          })
     },
 
     // 获取用户名称，显示在 Header 里
     getUsername() {
       const _this = this
       const userId = this.getUserIdByToken()
-      this.$axios.get('http://localhost:9002/user/' + userId, {
-            headers: {
-              Authorization: localStorage.getItem('token')
+      this.$http.get('api/user/' + userId)
+          .then(res => {
+            if (res.code === 0) {
+              _this.loginUser = res
+            } else {
+              _this.$message.error('系统错误' + res.msg)
             }
-          }
-      ).then(res => {
-        if (res.data.code === 0) {
-          _this.loginUser = res.data.data
-        } else {
-          _this.$message.error('系统错误' + res.data.msg)
-        }
-      })
+          })
     },
     // 从 token 里获取用户的 id 信息
     getUserIdByToken() {

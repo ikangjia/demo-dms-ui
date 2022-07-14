@@ -13,7 +13,7 @@
         <el-form-item>
           <el-input style="width: 40%;margin-left:0; margin-right: 20px" v-model="loginForm.code"
                     placeholder="验证码"/>
-          <img style="width: 60%" src="" alt="aaa">
+          <img style="width: 50%" :src="src" @click="refreshCode" alt="看不清？单机图片刷新">
         </el-form-item>
         <el-button type="primary" style="width: 100%; margin-bottom: 10px" @click="doLogin">登录</el-button>
         <el-link href="#" style="float: left">忘记密码？</el-link>
@@ -27,26 +27,42 @@
 <script>
 export default {
   name: 'LoginView',
-  data () {
+  data() {
     return {
       loginForm: {
         account: 'admin',
         password: 'admin',
         code: '1234'
-      }
+      },
+      src: 'api/user/captcha.jpg'
     }
   },
   methods: {
-    doLogin () {
-
-      this.$axios.post('http://localhost:9002/user/doLogin', this.loginForm)
+    doLogin() {
+      this.$http.post('api/user/doLogin', this.loginForm)
           .then(res => {
-            if (res.data.code === 0) {
-              localStorage.setItem('token', res.data.data.token)
-              console.log(res.data.data.id)
+            if (res.code === 0) {
+              localStorage.setItem('token', res.data.token)
               this.$router.push('/dataSource')
+            } else {
+              this.$message.error(res.msg)
             }
           })
+    },
+    getCode() {
+      const now = Date.now()
+      this.$http.post('api/user/captcha.jpg?t=' + now)
+          .then(res => {
+            if (res.code === 0) {
+              localStorage.setItem('token', res.data.token)
+              this.$router.push('/dataSource')
+            } else {
+              this.$message.error(res.msg)
+            }
+          })
+    },
+    refreshCode() {
+      this.src = "api/user/captcha.jpg?t=" + Date.now()
     }
   }
 }
@@ -69,7 +85,7 @@ export default {
   border-radius: 15px;
 }
 
-span, #loginForm{
+span, #loginForm {
   width: 80%;
   margin-left: 10%;
   margin-bottom: 10px;
