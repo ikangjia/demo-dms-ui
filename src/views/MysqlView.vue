@@ -30,8 +30,8 @@
       <div class="left-box">
         <!-- 模糊匹配搜索框 -->
         <div class="left-top">
-          <el-input v-model="filterText" placeholder="输入关键字进行过滤" style="margin-right: 15px;width: 280px"></el-input>
-          <el-button style="" size="mini" @click="resetLikeSearch">置空</el-button>
+          <el-input v-model="filterText" placeholder="输入关键字进行过滤" style="margin-right: 5px;width: 70%"></el-input>
+          <el-button style="width: 20%" size="mini" @click="resetLikeSearch">置空</el-button>
         </div>
 
         <!-- 树形菜单区域 -->
@@ -156,7 +156,17 @@
       </div>
       <!-- 右侧标签主体区域 -->
       <div class="right-box">
-        各个功能点的标签页区域
+        <el-tabs type="card">
+          <el-tab-pane
+              label="数据源信息"
+              :closable="false"
+          >
+            数据源信息数据源信息数据源信息数据源信息
+          </el-tab-pane>
+          <el-tab-pane label="创建表">
+            <MysqlTableCreate></MysqlTableCreate>
+          </el-tab-pane>
+        </el-tabs>
       </div>
     </div>
     <el-footer>
@@ -169,9 +179,11 @@
 
 <script>
 import treeData from '../mokedata/mysql_data'
+import MysqlTableCreate from "@/components/mysql/MysqlTableCreate";
 
 export default {
   name: "MysqlView",
+  components: {MysqlTableCreate},
   data() {
     return {
       loginUser: {},
@@ -396,6 +408,9 @@ export default {
 
 .container .left-box {
   flex: 1;
+  border-right-style: inset;
+  border-right-width: 2px;
+  border-right-color: gainsboro;
 }
 
 .container .left-box .left-top {
@@ -448,7 +463,7 @@ export default {
 
 /*右侧标签区域样式*/
 .container .right-box {
-  flex: 3;
-  background-color: cyan;
+  flex: 4;
+  margin-left: 2px;
 }
 </style>
