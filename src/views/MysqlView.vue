@@ -220,11 +220,10 @@ export default {
       const dataSourceId = this.$route.params.dataSourceId
       // const dataSourceType = this.$route.params.dataSourceType
 
-      this.$http.get('api/dataSource/' + dataSourceId)
+      this.$http.get('api/database?dataSourceId=' + 1)
           .then(res => {
-            if (res.code == 0) {
-              this.dataSourceInfo = res.data
-            }
+            console.log(res);
+            this.treeData = res.data
           })
 
     },
@@ -411,6 +410,7 @@ export default {
   border-right-style: inset;
   border-right-width: 2px;
   border-right-color: gainsboro;
+  overflow-x: auto;
 }
 
 .container .left-box .left-top {
