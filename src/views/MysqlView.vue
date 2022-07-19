@@ -46,7 +46,6 @@
               @node-contextmenu="rightClick"
               @node-click="leftClick"
               :highlight-current="true"
-              :node-expand="lazyOpenChildrenNode"
               :load="loadTree"
               lazy
               ref="tree">
@@ -161,12 +160,23 @@
       <div class="right-box">
         <el-tabs type="card">
           <el-tab-pane
-              label="数据源信息"
-              :closable="false"
-          >
-            数据源信息数据源信息数据源信息数据源信息
+              label="首页"
+              :closable="false">
+            <el-descriptions style="margin-left: 10px" size="large" title="数据源信息">
+              <el-descriptions-item label="数据源名称">{{dataSourceInfo.name}}</el-descriptions-item>
+              <el-descriptions-item label="数据源类型">
+                <el-tag v-show="dataSourceInfo.type === 0" size="small">MySQL</el-tag>
+                <el-tag v-show="dataSourceInfo.type === 1" type="danger" size="small">Redis</el-tag>
+                <el-tag v-show="dataSourceInfo.type === 2" type="success" size="small">MongoDB</el-tag>
+                <el-tag v-show="dataSourceInfo.type === 3" type="warning" size="small">Oracle</el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="主机">{{dataSourceInfo.host}}</el-descriptions-item>
+              <el-descriptions-item label="端口">{{dataSourceInfo.port}}</el-descriptions-item>
+              <el-descriptions-item label="数据库用户">{{dataSourceInfo.username}}</el-descriptions-item>
+              <el-descriptions-item label="描述">{{dataSourceInfo.description}}</el-descriptions-item>
+            </el-descriptions>
           </el-tab-pane>
-          <el-tab-pane label="创建表">
+          <el-tab-pane label="创建表" :closable="true">
             <MysqlTableCreate></MysqlTableCreate>
           </el-tab-pane>
         </el-tabs>
@@ -190,11 +200,12 @@ export default {
     return {
       loginUser: {},
       dataSourceInfo: {},
+
       treeData: [],
       treeProps: {
-        label:'label',
+        label: 'label',
         isLeaf: 'leaf',
-        icon:'icon',
+        icon: 'icon',
         id: 'id'
       },
       emptyText: '无数据~',
@@ -223,34 +234,41 @@ export default {
     this.initPageData()
   },
   methods: {
-    lazyOpenChildrenNode(obj, node, target) {
-      console.log(obj)
-      console.log(node)
-      console.log(target)
-    },
+    // 树数据加载
     loadTree(node, resolve) {
+      // 默认加载一级，即数据库列表
       if (node.level === 0) {
         this.loadLevel1Node(resolve);
       }
-      //如果展开其他级节点，动态从后台加载下一级节点列表
+      //动态从后台加载二级节点列表，表、视图等文件夹
       if (node.level === 1) {
         this.loadLevel2Node(node, resolve);
       }
 
-      //如果展开其他级节点，动态从后台加载下一级节点列表
+      //动态从后台加载三级节点列表，具体的表列表、试图列表等
       if (node.level === 2) {
         this.loadLevel3Node(node, resolve);
       }
     },
+
+    // 初始化页面
     initPageData() {
+      // 填充页面 header 区域标题
       this.getUsername()
-      const dataSourceId = this.$route.params.dataSourceId
-      console.log(dataSourceId);
+
+      // 获取数据源信息
+      let dsInfo = this.$route.params.dsInfo
+      if (dsInfo !== undefined) {
+        localStorage.setItem('dsInfo', JSON.stringify(dsInfo))
+      } else {
+        dsInfo = JSON.parse(localStorage.getItem('dsInfo'))
+      }
+      this.dataSourceInfo = dsInfo
     },
 
     //加载第一级节点
     async loadLevel1Node(resolve) {
-      this.$http.get('api/database/tree/level1?dataSourceId=' + 1)
+      this.$http.get('api/database/tree/level1?dataSourceId=' + this.dataSourceInfo.id)
           .then(res => {
             return resolve(res.data);
           })
@@ -285,7 +303,7 @@ export default {
 
       }
       this.$http.post('api/database/tree/level3', {
-        dataSourceId: 1,
+        dataSourceId: this.dataSourceInfo.id,
         parentNode: node.data,
         rootNode: node.parent.data,
         type: type,
@@ -296,7 +314,10 @@ export default {
 
     // 获取用户名称，显示在 Header 里
     getUsername() {
-      this.$http.get('api/user/' + this.getUserIdByToken())
+      // 从 token 里获取用户的 id 信息
+      let payload = window.atob(localStorage.getItem('token').split('.')[1])
+      const currentLoginUserId = JSON.parse(payload).id
+      this.$http.get('api/user/' + currentLoginUserId)
           .then(res => {
             if (res.code === 0) {
               this.loginUser = res.data
@@ -304,11 +325,6 @@ export default {
               this.$message.error('系统错误' + res.msg)
             }
           })
-    },
-    // 从 token 里获取用户的 id 信息
-    getUserIdByToken() {
-      let payload = window.atob(localStorage.getItem('token').split('.')[1])
-      return JSON.parse(payload).id
     },
     // 右上角用户下拉框事件处理
     handleCommand(command) {
@@ -423,6 +439,9 @@ export default {
       this.$refs.tree.filter(val);
     }
   },
+  destroyed() {
+    // localStorage.removeItem('dsInfo')
+  },
 }
 </script>
 
@@ -473,7 +492,8 @@ export default {
 }
 
 .container .left-box {
-  flex: 1;
+  flex: 1.1;
+  height: 100%;
   border-right-style: inset;
   border-right-width: 2px;
   border-right-color: gainsboro;
@@ -482,17 +502,17 @@ export default {
 
 .container .left-box .left-top {
   height: 40px;
-  margin: 5px auto;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .container .left-box .left-tree {
-  height: calc(100% - 40px);
+  height: calc(100% - 40px - 5px);
   margin-top: 5px;
   margin-left: 5px;
-  margin-right: 5px;
+  /*margin-right: 5px;*/
+  overflow: auto;
 }
 
 .disableSelect {

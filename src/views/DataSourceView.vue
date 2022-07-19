@@ -126,17 +126,12 @@ export default {
           })
     },
     openMainView(index, row) {
-      console.log(index)
-      console.log(row)
-      const dataSourceId = row.id
-      const dataSourceType = row.type
       switch (row.type) {
         case 0:
           this.$router.push({
             name: 'MySQL',
             params: {
-              dataSourceId: dataSourceId,
-              dataSourceType: dataSourceType
+              dsInfo: row
             }
           })
           break
