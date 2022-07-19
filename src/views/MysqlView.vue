@@ -39,13 +39,16 @@
           <el-tree
               id="el-tree"
               class="disableSelect"
-              :data="treeData"
               node-key="id"
+              :props="treeProps"
               :empty-text="emptyText"
               :filter-node-method="filterNode"
               @node-contextmenu="rightClick"
               @node-click="leftClick"
               :highlight-current="true"
+              :node-expand="lazyOpenChildrenNode"
+              :load="loadTree"
+              lazy
               ref="tree">
              <span slot-scope="{ node, data }" class="slot-t-node">
                <template>
@@ -178,7 +181,6 @@
 </template>
 
 <script>
-import treeData from '../mokedata/mysql_data'
 import MysqlTableCreate from "@/components/mysql/MysqlTableCreate";
 
 export default {
@@ -188,7 +190,13 @@ export default {
     return {
       loginUser: {},
       dataSourceInfo: {},
-      treeData: treeData,
+      treeData: [],
+      treeProps: {
+        label:'label',
+        isLeaf: 'leaf',
+        icon:'icon',
+        id: 'id'
+      },
       emptyText: '无数据~',
       filterText: '',
 
@@ -215,18 +223,77 @@ export default {
     this.initPageData()
   },
   methods: {
+    lazyOpenChildrenNode(obj, node, target) {
+      console.log(obj)
+      console.log(node)
+      console.log(target)
+    },
+    loadTree(node, resolve) {
+      if (node.level === 0) {
+        this.loadLevel1Node(resolve);
+      }
+      //如果展开其他级节点，动态从后台加载下一级节点列表
+      if (node.level === 1) {
+        this.loadLevel2Node(node, resolve);
+      }
+
+      //如果展开其他级节点，动态从后台加载下一级节点列表
+      if (node.level === 2) {
+        this.loadLevel3Node(node, resolve);
+      }
+    },
     initPageData() {
       this.getUsername()
       const dataSourceId = this.$route.params.dataSourceId
-      // const dataSourceType = this.$route.params.dataSourceType
-
-      this.$http.get('api/database?dataSourceId=' + 1)
-          .then(res => {
-            console.log(res);
-            this.treeData = res.data
-          })
-
+      console.log(dataSourceId);
     },
+
+    //加载第一级节点
+    async loadLevel1Node(resolve) {
+      this.$http.get('api/database/tree/level1?dataSourceId=' + 1)
+          .then(res => {
+            return resolve(res.data);
+          })
+    },
+
+    //加载第二级节点
+    async loadLevel2Node(node, resolve) {
+      this.$http.get('api/database/tree/level2', {
+        label: node.data.label,
+        id: node.data.id,
+      }).then(res => {
+        return resolve(res.data);
+      })
+    },
+
+    //加载第三级节点
+    async loadLevel3Node(node, resolve) {
+      let type = 0
+      switch (node.data.id.slice(0, 3)) {
+        case '2_t':
+          type = 0
+          break
+        case '2_v':
+          type = 1
+          break
+        case '2_p':
+          type = 2
+          break
+        case '2_f':
+          type = 3
+          break
+
+      }
+      this.$http.post('api/database/tree/level3', {
+        dataSourceId: 1,
+        parentNode: node.data,
+        rootNode: node.parent.data,
+        type: type,
+      }).then(res => {
+        return resolve(res.data);
+      })
+    },
+
     // 获取用户名称，显示在 Header 里
     getUsername() {
       this.$http.get('api/user/' + this.getUserIdByToken())
