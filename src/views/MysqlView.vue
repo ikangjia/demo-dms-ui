@@ -51,7 +51,7 @@
               ref="tree">
              <span slot-scope="{ node, data }" class="slot-t-node">
                <template>
-                 <i :class="data.icon" style="color: wheat;margin-right: 2px"/>
+                 <i :class="data.icon" style="color: wheat;margin-right: 5px"/>
                  <span>{{ node.label }}</span>
                </template>
              </span>
