@@ -3,7 +3,7 @@
     <el-header>
       <h3 style="display:inline;">欢迎使用xxx系统</h3>
       <ul style="display: inline;margin-left: 200px">
-        <li><a href="#">SQL 窗口</a></li>
+        <li><a href="javascript:" @click="createTab(1)">SQL 窗口</a></li>
         <li><a href="#">导出数据</a></li>
         <li><a href="#">用户权限操作</a></li>
         <li><a href="#">帮助</a></li>
@@ -177,7 +177,7 @@
             </el-descriptions>
           </el-tab-pane>
           <el-tab-pane label="创建表" :closable="true">
-            <MysqlTableCreate></MysqlTableCreate>
+            <MysqlConsole></MysqlConsole>
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -191,11 +191,11 @@
 </template>
 
 <script>
-import MysqlTableCreate from "@/components/mysql/MysqlTableCreate";
+import MysqlConsole from "@/components/mysql/MysqlConsole";
 
 export default {
   name: "MysqlView",
-  components: {MysqlTableCreate},
+  components: {MysqlConsole},
   data() {
     return {
       loginUser: {},
@@ -350,6 +350,15 @@ export default {
       console.log(node.isLeaf)
       if (!value) return true;
       return data.label.indexOf(value) !== -1;
+    },
+    createTab(type) {
+      console.log(type)
+      switch (type) {
+        case 1:
+          // 打开sql控制台
+          break;
+
+      }
     },
 
     // 单击树事件

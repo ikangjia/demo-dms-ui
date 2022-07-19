@@ -1,12 +1,12 @@
 <template>
 <div>
-  <h2>Mysql 创建表</h2>
+  <h2>SQL 控制台</h2>
 </div>
 </template>
 
 <script>
 export default {
-  name: "MysqlTableCreate"
+  name: "MysqlConsole"
 }
 </script>
 
