@@ -64,7 +64,7 @@
                id="rightClickMenu1">
             <a href="javascript:" @click="openCreateDbDialog">新建数据库</a>
             <a href="javascript:">编辑数据库</a>
-            <a href="javascript:">删除数据库</a>
+            <a href="javascript:" @click="openDropDbDialog">删除数据库</a>
             <el-divider></el-divider>
             <a href="javascript:">新建表</a>
             <a href="javascript:">新建视图</a>
@@ -425,6 +425,7 @@ export default {
     // 右键树事件
     // 参数依次为：event、节点数据对象、节点对应的 Node、节点组件本身
     rightClick(event, data, node, target) {
+      // this.$refs.tree.setCurrentNode(node)
       this.closeAllRightClick()
 
       this.rightClickData.optionCardX = event.x + 10
@@ -492,7 +493,6 @@ export default {
         this.collationNames = res.data
       })
     },
-
     // 创建数据库
     createDb() {
       this.$http.post('api/database', {
@@ -510,6 +510,31 @@ export default {
         }
       })
 
+    },
+
+    openDropDbDialog() {
+      this.$confirm('该操作将清空数据库所有数据，确认要删除数据库?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$http.delete("api/database", {
+          dataSourceId: this.dataSourceInfo.id,
+          dbName: this.rightClickData.node.data.label
+        }).then(res => {
+          if (res.code === 0 && res.data) {
+            this.$message.success('删除数据库成功~')
+            this.$refs.tree.remove(this.rightClickData.node.data)
+          } else {
+            this.$message.error('删除数据库失败~')
+          }
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        });
+      });
     },
 
     // 点击其他区域右键菜单关闭
