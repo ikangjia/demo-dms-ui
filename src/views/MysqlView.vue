@@ -56,12 +56,13 @@
                </template>
              </span>
           </el-tree>
+
           <!-- 右键数据库 -->
           <div :style="{left: rightClickData.optionCardX + 'px',top: rightClickData.optionCardY + 'px'}"
                v-show="rightClickData.databaseCardShow"
                class="rightClickMenu disableSelect"
                id="rightClickMenu1">
-            <a href="javascript:">新建数据库</a>
+            <a href="javascript:" @click="openCreateDbDialog">新建数据库</a>
             <a href="javascript:">编辑数据库</a>
             <a href="javascript:">删除数据库</a>
             <el-divider></el-divider>
@@ -155,6 +156,40 @@
           </div>
         </div>
 
+        <!-- 新建数据库对话框 -->
+        <el-dialog title="新建数据库" :visible.sync="dialogCreateDbVisible">
+          <el-form :model="databaseForm">
+            <el-form-item label="数据库名" label-width="200px">
+              <el-input v-model="databaseForm.dbName" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="字符集" label-width="200px">
+              <el-select @change="initCollations()" v-model="databaseForm.characterSetName" placeholder="请选择字符集">
+                <el-option
+                    v-for="item in characterSetNameList"
+                    :key="item"
+                    :label="item"
+                    :value="item">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="排序规则" label-width="200px">
+              <el-select v-model="databaseForm.collationName" placeholder="请选择排序规则">
+                <el-option
+                    v-for="item in collationNames"
+                    :key="item"
+                    :label="item"
+                    :value="item">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogCreateDbVisible = false">取 消</el-button>
+            <el-button type="primary" @click="createDb">确 定</el-button>
+          </div>
+        </el-dialog>
+
+
       </div>
       <!-- 右侧标签主体区域 -->
       <div class="right-box">
@@ -182,6 +217,7 @@
         </el-tabs>
       </div>
     </div>
+
     <el-footer>
       <span>@copyright 2022</span> &nbsp;&nbsp;
       <span>作者：<el-link style="font-size: 14px;" href="https://ikangjia.cn/"
@@ -227,7 +263,13 @@ export default {
         optionData: [],
         node: null,
         tree: null
-      }
+      },
+
+      // 创建数据库对话框
+      dialogCreateDbVisible: false,
+      databaseForm: {},
+      characterSetNameList: [],
+      collationNames: [],
     }
   },
   created() {
@@ -288,19 +330,18 @@ export default {
     async loadLevel3Node(node, resolve) {
       let type = 0
       switch (node.data.id.slice(0, 3)) {
-        case '2_t':
+        case '2-t':
           type = 0
           break
-        case '2_v':
+        case '2-v':
           type = 1
           break
-        case '2_p':
+        case '2-p':
           type = 2
           break
-        case '2_f':
+        case '2-f':
           type = 3
           break
-
       }
       this.$http.post('api/database/tree/level3', {
         dataSourceId: this.dataSourceInfo.id,
@@ -308,7 +349,11 @@ export default {
         rootNode: node.parent.data,
         type: type,
       }).then(res => {
-        return resolve(res.data);
+        if (res.data != null) {
+          return resolve(res.data);
+        } else {
+          return resolve([])
+        }
       })
     },
 
@@ -430,6 +475,43 @@ export default {
           break
       }
     },
+
+    openCreateDbDialog() {
+      this.dialogCreateDbVisible = true
+      this.$http.get('api/database/characters?dataSourceId=' + this.dataSourceInfo.id)
+          .then(res => {
+            res.data.unshift('默认')
+            this.characterSetNameList = res.data
+          })
+    },
+    initCollations() {
+      this.$http.get('api/database/collations?dataSourceId=' + this.dataSourceInfo.id, {
+        characterSetName: this.databaseForm.characterSetName
+      }).then(res => {
+        res.data.unshift('默认')
+        this.collationNames = res.data
+      })
+    },
+
+    // 创建数据库
+    createDb() {
+      this.$http.post('api/database', {
+        dataSourceId: this.dataSourceInfo.id,
+        dbName: this.databaseForm.dbName,
+        characterSetName: this.databaseForm.characterSetName === '默认' ? '' : this.databaseForm.characterSetName,
+        collationName: this.databaseForm.collationName === '默认' ? '' : this.databaseForm.collationName,
+      }).then(res => {
+        if (res.code === 0) {
+          this.$message.success("数据库创建成功~")
+          this.$refs.tree.append(res.data, null)
+          this.dialogCreateDbVisible = false
+        } else {
+          this.$message.error(res.msg)
+        }
+      })
+
+    },
+
     // 点击其他区域右键菜单关闭
     optionCardClose(event) {
       for (let i = 1; i < 10; i++) {
